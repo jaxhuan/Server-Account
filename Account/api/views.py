@@ -32,5 +32,4 @@ def register():
 @api.route('/login', methods=['POST'])
 def login():
     user = User.query.filter_by(username=request.form['username']).first()
-    result_dict = {'ok': 1, 'msg': '', 'data': user.is_current_pwd(request.form['password'])}
     return make_result(data=user.is_current_pwd(request.form['password']))

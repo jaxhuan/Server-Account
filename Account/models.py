@@ -1,10 +1,6 @@
 from sqlalchemy.ext.hybrid import hybrid_property
-from flask_sqlalchemy import SQLAlchemy
-from flask_bcrypt import Bcrypt
+from . import db, bcrypt
 import json
-
-db = SQLAlchemy()
-bcrypt = Bcrypt()
 
 
 class User(db.Model):
@@ -12,6 +8,7 @@ class User(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     username = db.Column(db.String(64), unique=True)
     _password = db.Column(db.String(128))
+    token = db.Column(db.String(128), unique=True, default='')
 
     @hybrid_property
     def password(self):
