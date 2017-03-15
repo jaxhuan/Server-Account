@@ -1,8 +1,32 @@
+import os
+import sys
 from flask import Flask
-from flask_script import Manager
-from flask_sqlalchemy import SQLAlchemy
 from flask_bcrypt import Bcrypt
 from flask_migrate import Migrate, MigrateCommand
+from flask_script import Manager, Command, Option
+from flask_sqlalchemy import SQLAlchemy
+
+
+# set gunicorn support to start with Flask-Script,bug:cannot use -D,so don't use.
+class GunicornServer(Command):
+    """Run the app within Gunicorn"""
+
+    def get_options(self):
+        from gunicorn.config import make_settings
+
+        settings = make_settings()
+        options = (
+            Option(*kclass.cli)
+            for setting, kclass in settings.items() if kclass.cli
+        )
+
+        return options
+
+    def run(self, *args, **kwargs):
+        run_args = sys.argv[2:]
+        run_args.append('Account:app')
+        os.execvp('gunicorn', [''] + run_args)
+
 
 app = Flask(__name__, instance_relative_config=True)
 app.config.from_object('config')
@@ -13,6 +37,8 @@ migrate = Migrate(app, db)
 
 manager = Manager(app)
 manager.add_command('db', MigrateCommand)
+# manager.add_command('gunicorn', GunicornServer())
+# use: python manager.py gunicorn -b 127.0.0.1:8000 -w 4 -D
 
 from .api import api
 from .web import web
